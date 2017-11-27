@@ -154,6 +154,12 @@ server <- function(input,output,session) {
       addLayersControl(baseGroups = c("Toner", "Toner Lite", "Open Street Map"),
         overlayGroups = c("ODIN_sites","PM2.5(interpolated)","Wind", "show labels"),
         options = layersControlOptions(collapsed = FALSE)) %>%
+      addProviderTiles(providers$Stamen.Toner, group = "Toner",
+		options = providerTileOptions(opacity = 1)) %>%
+      addTiles(group = "Open Street Map",
+		options = tileOptions(opacity = 1)) %>%
+      addProviderTiles(providers$Stamen.TonerLite, group = "Toner Lite",
+		options = providerTileOptions(opacity = 1)) %>%
       hideGroup("show labels")
   })
   
@@ -226,21 +232,18 @@ server <- function(input,output,session) {
   
   ## ODIN dynamic map.####
     observe({
-     
-      leafletProxy('myMap', deferUntilFlush = FALSE) %>%
-        addProviderTiles(providers$Stamen.Toner, group = "Toner",
-                         options = providerTileOptions(opacity = 1)) %>%
-        addTiles(group = "Open Street Map",
-                 options = tileOptions(opacity = 1)) %>%
-        addProviderTiles(providers$Stamen.TonerLite, group = "Toner Lite",
-                         options = providerTileOptions(opacity = 1)) %>%
+	  subsetRasterData <- subsetRaster()
+	  subsetDataData <- subsetData()
+
+      leafletProxy('myMap') %>%
+	    clearImages() %>%
         clearGroup('Wind') %>%
-        addRasterImage(subsetRaster(),
+        addRasterImage(subsetRasterData,
                        group = "PM2.5(interpolated)",
                        colors = binpal,
                        project = FALSE,
                        opacity = 0.70) %>%
-        addCircleMarkers(data = subsetData(),
+        addCircleMarkers(data = subsetDataData,
                        group = 'ODIN_sites',
                        color = "black",
                        weight = 2,
@@ -254,7 +257,7 @@ server <- function(input,output,session) {
                      opacity=1,
                      weight = 3,
                      color = "black") %>%
-        addLabelOnlyMarkers(data=subsetData(),
+        addLabelOnlyMarkers(data=subsetDataData,
                             group = "show labels",
                             label=~paste("ODIN",as.character(ODIN)),
                             labelOptions = labelOptions(noHide = T,
