@@ -1,5 +1,7 @@
 # User interface definition for the Shiny app
 
+library(shiny)
+
 # Load libraries
 source('./load_libraries.R')
 
